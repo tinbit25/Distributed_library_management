@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | DBU Library</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <h1>DBU Library <span style="font-weight: 300; font-size: 1rem;">| Student Portal</span></h1>
+        </div>
+        <div class="nav-links">
+            <span style="margin-right: 15px;">Welcome, <strong id="student-name-display">Student</strong></span>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <aside>
+                <div class="side-nav">
+                    <button id="btn-history" onclick="selectSection('my-history', 'btn-history')"><i
+                            class="fas fa-history"></i> My History</button>
+                    <button id="btn-search" onclick="selectSection('search', 'btn-search')"><i
+                            class="fas fa-search"></i> Search Catalog</button>
+                </div>
+            </aside>
+
+            <main>
+                <!-- My History -->
+                <div id="my-history" class="dashboard-section hidden">
+                    <h2>My Borrowing History</h2>
+                    <div class="form-card">
+                        <button onclick="viewMyHistory()" style="margin-bottom: 20px;">Refresh Records</button>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Book Title</th>
+                                    <th>Borrow Date</th>
+                                    <th>Return Date</th>
+                                    <th>Fine Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div id="search" class="dashboard-section hidden">
+                    <h2>Catalog Search</h2>
+                    <div class="form-card">
+                        <form id="search-form">
+                            <input type="text" id="search-query" placeholder="Enter book title or author..." required />
+                            <select id="search-type">
+                                <option value="title">By Title</option>
+                                <option value="author">By Author</option>
+                            </select>
+                            <button type="submit">Search</button>
+                        </form>
+                    </div>
+                    <table id="search-results-table" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Book Details</th>
+                                <th>Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody id="search-results-body"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Debre Berhan University Library Management System</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth('student');
+
+        function selectSection(sectionId, btnId) {
+            showSection(sectionId);
+            document.querySelectorAll('.side-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+        }
+
+        // Default section
+        selectSection('my-history', 'btn-history');
+
+        // Auto-load history
+        const memberId = localStorage.getItem("memberId");
+        if (memberId) {
+            viewMyHistory();
+        }
+
+        async function viewMyHistory() {
+            const mId = localStorage.getItem("memberId");
+            if (!mId) return;
+
+            const res = await fetch(`${API_URL}/history?memberId=${mId}`, {
+                headers: { Authorization: localStorage.getItem("token") }
+            });
+            const history = await res.json();
+            const tbody = document.getElementById("history-table-body");
+            tbody.innerHTML = "";
+            history.forEach((item) => {
+                const tr = document.createElement("tr");
+                const fineText = item.fine > 0 ? `<span style="color:red;">ETB ${item.fine}</span>` : "✅ None";
+                tr.innerHTML = `<td><strong>${item.title}</strong></td><td>${item.borrowDate}</td><td>${item.returnDate || "<em>Still Borrowed</em>"}</td><td>${fineText}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById("search-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const query = document.getElementById("search-query").value;
+            const type = document.getElementById("search-type").value;
+            const res = await fetch(`${API_URL}/search/books?${type}=${query}`, {
+                headers: { Authorization: localStorage.getItem("token") }
+            });
+            const books = await res.json();
+            const table = document.getElementById("search-results-table");
+            const tbody = document.getElementById("search-results-body");
+            tbody.innerHTML = "";
+            books.forEach(book => {
+                tbody.innerHTML += `<tr><td><strong>${book.title}</strong><br><small>${book.author}</small></td><td>${book.available ? '✅ Available' : '❌ Issued'}</td></tr>`;
+            });
+            table.classList.remove('hidden');
+        });
+    </script>
+</body>
+
+</html>

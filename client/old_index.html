@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management System</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      h1,
+      h2 {
+        text-align: center;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+      input,
+      button,
+      select {
+        margin: 10px 0;
+        padding: 10px;
+        font-size: 16px;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      .hidden {
+        display: none;
+      }
+      .menu-btn {
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="login-container">
+      <h1>Library Management System</h1>
+      <form id="login-form">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+
+    <div class="container hidden" id="main-container">
+      <h1>Welcome, <span id="user-role"></span></h1>
+      <button onclick="logout()">Logout</button>
+      <div id="admin-menu" class="hidden">
+        <h2>Admin Menu</h2>
+        <button class="menu-btn" onclick="showSection('book-management')">
+          Book Management
+        </button>
+        <button class="menu-btn" onclick="showSection('member-management')">
+          Member (Student) Management
+        </button>
+        <button class="menu-btn" onclick="showSection('user-management')">
+          Employee Management
+        </button>
+        <button class="menu-btn" onclick="showSection('borrow-return')">
+          Borrow/Return
+        </button>
+        <button class="menu-btn" onclick="showSection('reports')">
+          Reports
+        </button>
+        <button class="menu-btn" onclick="showSection('search')">Search</button>
+      </div>
+      <div id="employee-menu" class="hidden">
+        <h2>Employee Menu</h2>
+        <button class="menu-btn" onclick="showSection('borrow-return')">
+          Borrow/Return
+        </button>
+        <button class="menu-btn" onclick="showSection('reports')">
+          Reports
+        </button>
+        <button class="menu-btn" onclick="showSection('search')">Search</button>
+      </div>
+
+      <div id="book-management" class="hidden">
+        <h2>Book Management</h2>
+        <form id="add-book-form">
+          <input type="text" id="book-title" placeholder="Title" required />
+          <input type="text" id="book-author" placeholder="Author" required />
+          <button type="submit">Add Book</button>
+        </form>
+        <form id="update-book-form">
+          <input
+            type="number"
+            id="update-book-id"
+            placeholder="Book ID"
+            required
+          />
+          <input
+            type="text"
+            id="update-book-title"
+            placeholder="New Title"
+            required
+          />
+          <input
+            type="text"
+            id="update-book-author"
+            placeholder="New Author"
+            required
+          />
+          <button type="submit">Update Book</button>
+        </form>
+        <form id="delete-book-form">
+          <input
+            type="number"
+            id="delete-book-id"
+            placeholder="Book ID"
+            required
+          />
+          <button type="submit">Delete Book</button>
+        </form>
+        <button onclick="viewAllBooks()">View All Books</button>
+        <table id="books-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Available</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="member-management" class="hidden">
+        <h2>Member (Student) Management</h2>
+        <form id="add-member-form">
+          <input type="text" id="member-id" placeholder="ID" required />
+          <input type="text" id="member-name" placeholder="Name" required />
+          <input type="email" id="member-email" placeholder="Email" required />
+          <button type="submit">Add Member</button>
+        </form>
+        <form id="update-member-form">
+          <input
+            type="text"
+            id="update-member-id"
+            placeholder="Member ID"
+            required
+          />
+          <input
+            type="text"
+            id="update-member-name"
+            placeholder="New Name"
+            required
+          />
+          <input
+            type="email"
+            id="update-member-email"
+            placeholder="New Email"
+            required
+          />
+          <button type="submit">Update Member</button>
+        </form>
+        <form id="delete-member-form">
+          <input
+            type="text"
+            id="delete-member-id"
+            placeholder="Member ID"
+            required
+          />
+          <button type="submit">Delete Member</button>
+        </form>
+        <button onclick="viewAllMembers()">View All Members</button>
+        <table id="members-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="user-management" class="hidden">
+        <h2>Employee Management</h2>
+        <form id="add-user-form">
+          <input
+            type="text"
+            id="user-username"
+            placeholder="Username"
+            required
+          />
+          <input
+            type="password"
+            id="user-password"
+            placeholder="Password"
+            required
+          />
+          <button type="submit">Add Employee</button>
+        </form>
+        <button onclick="viewAllUsers()">View All Employees</button>
+        <table id="users-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Role</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="borrow-return" class="hidden">
+        <h2>Borrow/Return</h2>
+        <form id="borrow-form">
+          <input
+            type="text"
+            id="borrow-member-id"
+            placeholder="Member ID"
+            required
+          />
+          <input
+            type="number"
+            id="borrow-book-id"
+            placeholder="Book ID"
+            required
+          />
+          <input type="date" id="borrow-date" required />
+          <button type="submit">Borrow Book</button>
+        </form>
+        <form id="return-form">
+          <input
+            type="text"
+            id="return-member-id"
+            placeholder="Member ID"
+            required
+          />
+          <input
+            type="number"
+            id="return-book-id"
+            placeholder="Book ID"
+            required
+          />
+          <input type="date" id="return-date" required />
+          <button type="submit">Return Book</button>
+        </form>
+        <button onclick="viewBorrowedBooks()">View Borrowed Books</button>
+        <table id="borrowed-table">
+          <thead>
+            <tr>
+              <th>Book ID</th>
+              <th>Member ID</th>
+              <th>Borrow Date</th>
+              <th>Due Date</th>
+              <th>Return Date</th>
+              <th>Fine</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="reports" class="hidden">
+        <h2>Reports</h2>
+        <button onclick="getReport('total_books')">Total Books</button>
+        <button onclick="getReport('issued_books')">Issued Books</button>
+        <button onclick="getReport('overdue_books')">Overdue Books</button>
+        <form id="history-form">
+          <input
+            type="text"
+            id="history-member-id"
+            placeholder="Member ID"
+            required
+          />
+          <button type="submit">View Borrowing History</button>
+        </form>
+        <div id="report-result"></div>
+        <table id="overdue-table" class="hidden">
+          <thead>
+            <tr>
+              <th>Book ID</th>
+              <th>Member ID</th>
+              <th>Borrow Date</th>
+              <th>Due Date</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <table id="history-table" class="hidden">
+          <thead>
+            <tr>
+              <th>Book Title</th>
+              <th>Borrow Date</th>
+              <th>Return Date</th>
+              <th>Fine</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="search" class="hidden">
+        <h2>Search</h2>
+        <form id="search-books-title-form">
+          <input type="text" id="search-title" placeholder="Title" required />
+          <button type="submit">Search Books by Title</button>
+        </form>
+        <form id="search-books-author-form">
+          <input type="text" id="search-author" placeholder="Author" required />
+          <button type="submit">Search Books by Author</button>
+        </form>
+        <form id="search-members-name-form">
+          <input type="text" id="search-name" placeholder="Name" required />
+          <button type="submit">Search Members by Name</button>
+        </form>
+        <table id="search-results">
+          <thead>
+            <tr>
+              <th>Results</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const API_URL = "http://192.168.8.100:8080/api";
+
+      document
+        .getElementById("login-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = document.getElementById("username").value.trim();
+          const password = document.getElementById("password").value.trim();
+
+          if (!username || !password) {
+            alert("Please enter both username and password");
+            return;
+          }
+
+          // IMPORTANT: x-www-form-urlencoded (NOT FormData)
+          const body =
+            "username=" +
+            encodeURIComponent(username) +
+            "&password=" +
+            encodeURIComponent(password);
+
+          try {
+            const res = await fetch(API_URL + "/login", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+              },
+              body: body,
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+              localStorage.setItem("token", data.token);
+              localStorage.setItem("role", data.role);
+
+              document
+                .getElementById("login-container")
+                .classList.add("hidden");
+              document
+                .getElementById("main-container")
+                .classList.remove("hidden");
+              document.getElementById("user-role").textContent =
+                data.role.charAt(0).toUpperCase() + data.role.slice(1);
+
+              if (data.role === "admin") {
+                document
+                  .getElementById("admin-menu")
+                  .classList.remove("hidden");
+              } else {
+                document
+                  .getElementById("employee-menu")
+                  .classList.remove("hidden");
+              }
+            } else {
+              alert("Invalid credentials");
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Server error");
+          }
+        });
+      function logout() {
+        localStorage.clear();
+        location.reload();
+      }
+
+      function showSection(sectionId) {
+        const sections = [
+          "book-management",
+          "member-management",
+          "user-management",
+          "borrow-return",
+          "reports",
+          "search",
+        ];
+        sections.forEach((id) =>
+          document.getElementById(id).classList.add("hidden")
+        );
+        document.getElementById(sectionId).classList.remove("hidden");
+      }
+      // Book Management
+      document
+        .getElementById("add-book-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append("title", document.getElementById("book-title").value);
+          formData.append(
+            "author",
+            document.getElementById("book-author").value
+          );
+          const res = await fetch(`${API_URL}/books`, {
+            method: "POST",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Book added");
+          else alert("Error");
+        });
+
+      document
+        .getElementById("update-book-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append(
+            "id",
+            document.getElementById("update-book-id").value
+          );
+          formData.append(
+            "title",
+            document.getElementById("update-book-title").value
+          );
+          formData.append(
+            "author",
+            document.getElementById("update-book-author").value
+          );
+          const res = await fetch(`${API_URL}/books`, {
+            method: "PUT",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Book updated");
+          else alert("Error");
+        });
+
+      document
+        .getElementById("delete-book-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = document.getElementById("delete-book-id").value;
+          const res = await fetch(`${API_URL}/books?id=${id}`, {
+            method: "DELETE",
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Book deleted");
+          else alert("Error");
+        });
+
+      // All your other functions remain exactly as they were in your original code
+      // (add-book, update-book, delete-book, viewAllBooks, add-member, etc.)
+      // They are all correct and will work after login
+
+      // Example: View All Books (keep your original ones)
+      async function viewAllBooks() {
+        const res = await fetch(`${API_URL}/books`, {
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        const books = await res.json();
+        const tbody = document.querySelector("#books-table tbody");
+        tbody.innerHTML = "";
+        books.forEach((book) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.available}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      document
+        .getElementById("add-member-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append("id", document.getElementById("member-id").value);
+          formData.append("name", document.getElementById("member-name").value);
+          formData.append(
+            "email",
+            document.getElementById("member-email").value
+          );
+          const res = await fetch(`${API_URL}/members`, {
+            method: "POST",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Member added");
+          else alert("Error");
+        });
+
+      document
+        .getElementById("update-member-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append(
+            "id",
+            document.getElementById("update-member-id").value
+          );
+          formData.append(
+            "name",
+            document.getElementById("update-member-name").value
+          );
+          formData.append(
+            "email",
+            document.getElementById("update-member-email").value
+          );
+          const res = await fetch(`${API_URL}/members`, {
+            method: "PUT",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Member updated");
+          else alert("Error");
+        });
+
+      document
+        .getElementById("delete-member-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id = document.getElementById("delete-member-id").value;
+          const res = await fetch(`${API_URL}/members?id=${id}`, {
+            method: "DELETE",
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Member deleted");
+          else alert("Error");
+        });
+
+      async function viewAllMembers() {
+        const res = await fetch(`${API_URL}/members`, {
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        const members = await res.json();
+        const tbody = document.querySelector("#members-table tbody");
+        tbody.innerHTML = "";
+        members.forEach((member) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${member.id}</td><td>${member.name}</td><td>${member.email}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // User (Employee) Management
+      document
+        .getElementById("add-user-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append(
+            "username",
+            document.getElementById("user-username").value
+          );
+          formData.append(
+            "password",
+            document.getElementById("user-password").value
+          );
+          formData.append("role", "employee");
+          const res = await fetch(`${API_URL}/users`, {
+            method: "POST",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Employee added");
+          else alert("Error");
+        });
+
+      async function viewAllUsers() {
+        const res = await fetch(`${API_URL}/users`, {
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        const users = await res.json();
+        const tbody = document.querySelector("#users-table tbody");
+        tbody.innerHTML = "";
+        users.forEach((user) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${user.id}</td><td>${user.username}</td><td>${user.role}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Borrow/Return
+      document
+        .getElementById("borrow-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append(
+            "memberId",
+            document.getElementById("borrow-member-id").value
+          );
+          formData.append(
+            "bookId",
+            document.getElementById("borrow-book-id").value
+          );
+          formData.append(
+            "borrowDate",
+            document.getElementById("borrow-date").value
+          );
+          const res = await fetch(`${API_URL}/borrow`, {
+            method: "POST",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Book borrowed");
+          else alert(await res.text());
+        });
+
+      document
+        .getElementById("return-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const formData = new FormData();
+          formData.append(
+            "memberId",
+            document.getElementById("return-member-id").value
+          );
+          formData.append(
+            "bookId",
+            document.getElementById("return-book-id").value
+          );
+          formData.append(
+            "returnDate",
+            document.getElementById("return-date").value
+          );
+          const res = await fetch(`${API_URL}/return`, {
+            method: "POST",
+            body: formData,
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          if (res.ok) alert("Book returned");
+          else alert("Error");
+        });
+
+      async function viewBorrowedBooks() {
+        const res = await fetch(`${API_URL}/borrow`, {
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        const records = await res.json();
+        const tbody = document.querySelector("#borrowed-table tbody");
+        tbody.innerHTML = "";
+        records.forEach((record) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${record.bookId}</td><td>${
+            record.memberId
+          }</td><td>${record.borrowDate}</td><td>${record.dueDate}</td><td>${
+            record.returnDate || "Not returned"
+          }</td><td>${record.fine}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Reports
+      async function getReport(type) {
+        const res = await fetch(`${API_URL}/reports?type=${type}`, {
+          headers: { Authorization: localStorage.getItem("token") },
+        });
+        if (type === "overdue_books") {
+          const overdue = await res.json();
+          const tbody = document.querySelector("#overdue-table tbody");
+          tbody.innerHTML = "";
+          overdue.forEach((record) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${record.bookId}</td><td>${record.memberId}</td><td>${record.borrowDate}</td><td>${record.dueDate}</td>`;
+            tbody.appendChild(tr);
+          });
+          document.getElementById("overdue-table").classList.remove("hidden");
+          document.getElementById("report-result").innerHTML = "";
+        } else {
+          const data = await res.text();
+          document.getElementById("report-result").innerHTML = `${type
+            .replace("_", " ")
+            .toUpperCase()}: ${data}`;
+          document.getElementById("overdue-table").classList.add("hidden");
+        }
+      }
+
+      document
+        .getElementById("history-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const memberId = document.getElementById("history-member-id").value;
+          const res = await fetch(`${API_URL}/history?memberId=${memberId}`, {
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          const history = await res.json();
+          const tbody = document.querySelector("#history-table tbody");
+          tbody.innerHTML = "";
+          history.forEach((item) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td>${item.title}</td><td>${
+              item.borrowDate
+            }</td><td>${item.returnDate || "Not returned"}</td><td>${
+              item.fine
+            }</td>`;
+            tbody.appendChild(tr);
+          });
+          document.getElementById("history-table").classList.remove("hidden");
+        });
+
+      // Search
+      document
+        .getElementById("search-books-title-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const title = document.getElementById("search-title").value;
+          const res = await fetch(`${API_URL}/search/books?title=${title}`, {
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          const results = await res.json();
+          displaySearchResults(
+            results.map((book) => `${book.title} by ${book.author}`)
+          );
+        });
+
+      document
+        .getElementById("search-books-author-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const author = document.getElementById("search-author").value;
+          const res = await fetch(`${API_URL}/search/books?author=${author}`, {
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          const results = await res.json();
+          displaySearchResults(
+            results.map((book) => `${book.title} by ${book.author}`)
+          );
+        });
+
+      document
+        .getElementById("search-members-name-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("search-name").value;
+          const res = await fetch(`${API_URL}/search/members?name=${name}`, {
+            headers: { Authorization: localStorage.getItem("token") },
+          });
+          const results = await res.json();
+          displaySearchResults(results.map((member) => member.name));
+        });
+
+      function displaySearchResults(results) {
+        const tbody = document.querySelector("#search-results tbody");
+        tbody.innerHTML = "";
+        results.forEach((result) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${result}</td>`;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Keep all your other functions (add-member, borrow, reports, search, etc.) exactly as they were
+      // They are already correct
+    </script>
+  </body>
+</html>

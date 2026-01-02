@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Portal | DBU Library</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <h1>DBU Library <span style="font-weight: 300; font-size: 1rem;">| Staff Portal</span></h1>
+        </div>
+        <div class="nav-links">
+            <span style="margin-right: 15px;">Welcome, <strong>Staff</strong></span>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <aside>
+                <div class="side-nav">
+                    <button id="btn-circulation" onclick="selectSection('circulation', 'btn-circulation')"><i
+                            class="fas fa-exchange-alt"></i> Circulation</button>
+                    <button id="btn-reports" onclick="selectSection('reports', 'btn-reports')"><i
+                            class="fas fa-chart-line"></i> Reports</button>
+                    <button id="btn-search" onclick="selectSection('search', 'btn-search')"><i
+                            class="fas fa-search"></i> Catalog Search</button>
+                </div>
+            </aside>
+
+            <main>
+                <!-- Circulation -->
+                <div id="circulation" class="dashboard-section hidden">
+                    <h2>Circulation Services</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-card">
+                            <h3>Borrow Book</h3>
+                            <form id="borrow-form">
+                                <input type="text" id="borrow-member-id" placeholder="Member ID" required />
+                                <input type="number" id="borrow-book-id" placeholder="Book ID" required />
+                                <input type="date" id="borrow-date" required />
+                                <button type="submit">Issue Book</button>
+                            </form>
+                        </div>
+                        <div class="form-card">
+                            <h3>Return Book</h3>
+                            <form id="return-form">
+                                <input type="text" id="return-member-id" placeholder="Member ID" required />
+                                <input type="number" id="return-book-id" placeholder="Book ID" required />
+                                <input type="date" id="return-date" required />
+                                <button type="submit">Process Return</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports -->
+                <div id="reports" class="dashboard-section hidden">
+                    <h2>Library Statistics</h2>
+                    <div class="menu-grid">
+                        <button onclick="getReport('total_books')">Total Inventory</button>
+                        <button onclick="getReport('issued_books')">Books on Loan</button>
+                    </div>
+                    <div id="report-result"
+                        style="margin: 20px 0; font-size: 1.5rem; text-align: center; color: var(--primary-color);">
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div id="search" class="dashboard-section hidden">
+                    <h2>Catalog Search</h2>
+                    <div class="form-card">
+                        <form id="search-form">
+                            <input type="text" id="search-query" placeholder="Search title or author..." required />
+                            <select id="search-type">
+                                <option value="title">By Title</option>
+                                <option value="author">By Author</option>
+                            </select>
+                            <button type="submit">Find Books</button>
+                        </form>
+                    </div>
+                    <table id="search-results-table" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Book Details</th>
+                                <th>Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody id="search-results-body"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Debre Berhan University Library Management System</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth('employee');
+
+        function selectSection(sectionId, btnId) {
+            showSection(sectionId);
+            document.querySelectorAll('.side-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+        }
+
+        // Default section
+        selectSection('circulation', 'btn-circulation');
+
+        document.getElementById("borrow-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("memberId", document.getElementById("borrow-member-id").value);
+            formData.append("bookId", document.getElementById("borrow-book-id").value);
+            formData.append("borrowDate", document.getElementById("borrow-date").value);
+            try {
+                const res = await fetch(`${API_URL}/borrow`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+                if (res.ok) { alert("✅ Book issued successfully!"); document.getElementById("borrow-form").reset(); }
+                else { alert("❌ Error: " + await res.text()); }
+            } catch (err) { alert(err.message); }
+        });
+
+        document.getElementById("return-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("memberId", document.getElementById("return-member-id").value);
+            formData.append("bookId", document.getElementById("return-book-id").value);
+            formData.append("returnDate", document.getElementById("return-date").value);
+            try {
+                const res = await fetch(`${API_URL}/return`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+                if (res.ok) { alert("✅ Return processed!"); document.getElementById("return-form").reset(); }
+                else { alert("❌ Error: Failed to process return"); }
+            } catch (err) { alert(err.message); }
+        });
+
+        async function getReport(type) {
+            const res = await fetch(`${API_URL}/reports?type=${type}`, { headers: { Authorization: localStorage.getItem("token") } });
+            const data = await res.text();
+            document.getElementById("report-result").innerHTML = `<strong>${type.replace('_', ' ').toUpperCase()}</strong>: ${data}`;
+        }
+
+        document.getElementById("search-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const query = document.getElementById("search-query").value;
+            const type = document.getElementById("search-type").value;
+            const res = await fetch(`${API_URL}/search/books?${type}=${query}`, { headers: { Authorization: localStorage.getItem("token") } });
+            const books = await res.json();
+            const table = document.getElementById("search-results-table");
+            const tbody = document.getElementById("search-results-body");
+            tbody.innerHTML = "";
+            books.forEach(book => {
+                tbody.innerHTML += `<tr><td><strong>${book.title}</strong><br><small>${book.author}</small></td><td>${book.available ? '✅ Available' : '❌ Issued'}</td></tr>`;
+            });
+            table.classList.remove('hidden');
+        });
+    </script>
+</body>
+
+</html>

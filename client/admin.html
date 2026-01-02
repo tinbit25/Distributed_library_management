@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Console | DBU Library</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <h1>DBU Library <span style="font-weight: 300; font-size: 1rem;">| Admin Console</span></h1>
+        </div>
+        <div class="nav-links">
+            <span style="margin-right: 15px;">Welcome, <strong>Admin</strong></span>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard-grid">
+            <aside>
+                <div class="side-nav">
+                    <button id="btn-book" onclick="selectSection('book-management', 'btn-book')"><i
+                            class="fas fa-book"></i> Book Management</button>
+                    <button id="btn-member" onclick="selectSection('member-management', 'btn-member')"><i
+                            class="fas fa-users"></i> Member Management</button>
+                    <button id="btn-user" onclick="selectSection('user-management', 'btn-user')"><i
+                            class="fas fa-user-shield"></i> User Management</button>
+                    <button id="btn-borrow" onclick="selectSection('borrow-return', 'btn-borrow')"><i
+                            class="fas fa-exchange-alt"></i> Borrow/Return</button>
+                    <button id="btn-report" onclick="selectSection('reports', 'btn-report')"><i
+                            class="fas fa-chart-bar"></i> Reports</button>
+                    <button id="btn-search" onclick="selectSection('search', 'btn-search')"><i
+                            class="fas fa-search"></i> Search</button>
+                </div>
+            </aside>
+
+            <main>
+                <!-- Book Management -->
+                <div id="book-management" class="dashboard-section hidden">
+                    <h2>Book Management</h2>
+                    <div class="form-card">
+                        <h3>Add New Book</h3>
+                        <form id="add-book-form">
+                            <input type="text" id="book-title" placeholder="Title" required />
+                            <input type="text" id="book-author" placeholder="Author" required />
+                            <button type="submit">Add Book</button>
+                        </form>
+                    </div>
+
+                    <div class="form-card">
+                        <button onclick="viewAllBooks()">Refresh Book List</button>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Author</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="books-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Member Management -->
+                <div id="member-management" class="dashboard-section hidden">
+                    <h2>Member Management</h2>
+                    <p style="margin-bottom: 20px; color: #666;"><em>Note: Members are students/staff registered in the
+                            library database to borrow physical books.</em></p>
+                    <div class="form-card">
+                        <h3>Add New Member</h3>
+                        <form id="add-member-form">
+                            <input type="text" id="member-id" placeholder="Member ID" required />
+                            <input type="text" id="member-name" placeholder="Full Name" required />
+                            <input type="email" id="member-email" placeholder="Email Address" required />
+                            <button type="submit">Add Member</button>
+                        </form>
+                    </div>
+                    <div class="form-card">
+                        <button onclick="viewAllMembers()">Refresh Member List</button>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+                            <tbody id="members-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- User Management -->
+                <div id="user-management" class="dashboard-section hidden">
+                    <h2>User Authentication Management</h2>
+                    <p style="margin-bottom: 20px; color: #666;"><em>Note: Use this section to create <strong>Login
+                                Accounts</strong> so Students and Employees can log in to their portals. For students,
+                            the <strong>Username must match their Member ID</strong>.</em></p>
+                    <div class="form-card">
+                        <h3>Create Login Account</h3>
+                        <form id="add-user-form">
+                            <input type="text" id="user-username" placeholder="Username" required />
+                            <input type="password" id="user-password" placeholder="Password" required />
+                            <select id="user-role" required>
+                                <option value="employee">Employee</option>
+                                <option value="student">Student</option>
+                            </select>
+                            <button type="submit">Create Account</button>
+                        </form>
+                    </div>
+                    <div class="form-card">
+                        <button onclick="viewAllUsers()">Refresh User List</button>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Borrow/Return -->
+                <div id="borrow-return" class="dashboard-section hidden">
+                    <h2>Circulation Services</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-card">
+                            <h3>Borrow Book</h3>
+                            <form id="borrow-form">
+                                <input type="text" id="borrow-member-id" placeholder="Member ID" required />
+                                <input type="number" id="borrow-book-id" placeholder="Book ID" required />
+                                <input type="date" id="borrow-date" required />
+                                <button type="submit">Issue Book</button>
+                            </form>
+                        </div>
+                        <div class="form-card">
+                            <h3>Return Book</h3>
+                            <form id="return-form">
+                                <input type="text" id="return-member-id" placeholder="Member ID" required />
+                                <input type="number" id="return-book-id" placeholder="Book ID" required />
+                                <input type="date" id="return-date" required />
+                                <button type="submit">Process Return</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports -->
+                <div id="reports" class="dashboard-section hidden">
+                    <h2>Library Reports</h2>
+                    <div class="menu-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <button onclick="getReport('total_books')">Inventory Size</button>
+                        <button onclick="getReport('issued_books')">Current Loans</button>
+                        <button onclick="getReport('overdue_books')">Overdue List</button>
+                    </div>
+                    <div id="report-result"
+                        style="margin: 20px 0; font-size: 1.2rem; font-weight: bold; color: var(--primary-color);">
+                    </div>
+                    <table id="report-table" class="hidden">
+                        <thead id="report-thead"></thead>
+                        <tbody id="report-tbody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Search -->
+                <div id="search" class="dashboard-section hidden">
+                    <h2>Global Search</h2>
+                    <div class="form-card">
+                        <form id="search-form">
+                            <input type="text" id="search-query" placeholder="Search for books or members..."
+                                required />
+                            <select id="search-type">
+                                <option value="book-title">Books by Title</option>
+                                <option value="book-author">Books by Author</option>
+                                <option value="member-name">Members by Name</option>
+                            </select>
+                            <button type="submit">Search</button>
+                        </form>
+                    </div>
+                    <table id="search-results-table" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Results</th>
+                            </tr>
+                        </thead>
+                        <tbody id="search-results-body"></tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Debre Berhan University Library System</p>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        checkAuth('admin');
+
+        function selectSection(sectionId, btnId) {
+            showSection(sectionId);
+            document.querySelectorAll('.side-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+        }
+
+        // Default section
+        selectSection('book-management', 'btn-book');
+
+        // --- API INTEGRATION ---
+        async function viewAllBooks() {
+            const res = await fetch(`${API_URL}/books`, { headers: { Authorization: localStorage.getItem("token") } });
+            const books = await res.json();
+            const tbody = document.getElementById("books-table-body");
+            tbody.innerHTML = "";
+            books.forEach(book => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${book.id}</td><td>${book.title}</td><td>${book.author}</td><td>${book.available ? '✅ Available' : '❌ Issued'}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById("add-book-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("title", document.getElementById("book-title").value);
+            formData.append("author", document.getElementById("book-author").value);
+            try {
+                const res = await fetch(`${API_URL}/books`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+                if (res.ok) { alert("Book added!"); document.getElementById("add-book-form").reset(); viewAllBooks(); }
+            } catch (err) { alert(err.message); }
+        });
+
+        async function viewAllMembers() {
+            const res = await fetch(`${API_URL}/members`, { headers: { Authorization: localStorage.getItem("token") } });
+            const members = await res.json();
+            const tbody = document.getElementById("members-table-body");
+            tbody.innerHTML = "";
+            members.forEach(m => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${m.id}</td><td>${m.name}</td><td>${m.email}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById("add-member-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("id", document.getElementById("member-id").value);
+            formData.append("name", document.getElementById("member-name").value);
+            formData.append("email", document.getElementById("member-email").value);
+            try {
+                const res = await fetch(`${API_URL}/members`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+                if (res.ok) { alert("Member added!"); document.getElementById("add-member-form").reset(); viewAllMembers(); }
+            } catch (err) { alert(err.message); }
+        });
+
+        async function viewAllUsers() {
+            const res = await fetch(`${API_URL}/users`, { headers: { Authorization: localStorage.getItem("token") } });
+            const users = await res.json();
+            const tbody = document.getElementById("users-table-body");
+            tbody.innerHTML = "";
+            users.forEach(u => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td>${u.role}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        document.getElementById("add-user-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("username", document.getElementById("user-username").value);
+            formData.append("password", document.getElementById("user-password").value);
+            formData.append("role", document.getElementById("user-role").value);
+            try {
+                const res = await fetch(`${API_URL}/users`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+                if (res.ok) {
+                    alert("Account created!");
+                    document.getElementById("add-user-form").reset();
+                    viewAllUsers();
+                } else {
+                    alert("❌ Failed to create account. Username might be taken or server error.");
+                }
+            } catch (err) { alert(err.message); }
+        });
+
+        document.getElementById("borrow-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("memberId", document.getElementById("borrow-member-id").value);
+            formData.append("bookId", document.getElementById("borrow-book-id").value);
+            formData.append("borrowDate", document.getElementById("borrow-date").value);
+            const res = await fetch(`${API_URL}/borrow`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+            if (res.ok) alert("Book Issued!"); else alert("Error issuing book");
+        });
+
+        document.getElementById("return-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append("memberId", document.getElementById("return-member-id").value);
+            formData.append("bookId", document.getElementById("return-book-id").value);
+            formData.append("returnDate", document.getElementById("return-date").value);
+            const res = await fetch(`${API_URL}/return`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
+            if (res.ok) alert("Return Processed!"); else alert("Error processing return");
+        });
+
+        async function getReport(type) {
+            const res = await fetch(`${API_URL}/reports?type=${type}`, { headers: { Authorization: localStorage.getItem("token") } });
+            const resultDiv = document.getElementById("report-result");
+            const table = document.getElementById("report-table");
+            const thead = document.getElementById("report-thead");
+            const tbody = document.getElementById("report-tbody");
+
+            if (type === 'overdue_books') {
+                const data = await res.json();
+                resultDiv.textContent = "Overdue Books List";
+                thead.innerHTML = "<tr><th>Book ID</th><th>Member ID</th><th>Due Date</th></tr>";
+                tbody.innerHTML = "";
+                data.forEach(r => {
+                    tbody.innerHTML += `<tr><td>${r.bookId}</td><td>${r.memberId}</td><td>${r.dueDate}</td></tr>`;
+                });
+                table.classList.remove('hidden');
+            } else {
+                const count = await res.text();
+                resultDiv.textContent = `${type.replace('_', ' ').toUpperCase()}: ${count}`;
+                table.classList.add('hidden');
+            }
+        }
+
+        document.getElementById("search-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const query = document.getElementById("search-query").value;
+            const type = document.getElementById("search-type").value;
+            let url = "";
+            if (type.startsWith('book')) url = `${API_URL}/search/books?${type.split('-')[1]}=${query}`;
+            else url = `${API_URL}/search/members?name=${query}`;
+
+            const res = await fetch(url, { headers: { Authorization: localStorage.getItem("token") } });
+            const data = await res.json();
+            const table = document.getElementById("search-results-table");
+            const tbody = document.getElementById("search-results-body");
+            tbody.innerHTML = "";
+            data.forEach(item => {
+                const text = item.title ? `${item.title} by ${item.author}` : item.name;
+                tbody.innerHTML += `<tr><td>${text}</td></tr>`;
+            });
+            table.classList.remove('hidden');
+        });
+    </script>
+</body>
+
+</html>

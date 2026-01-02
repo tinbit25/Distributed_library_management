@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debre Berhan University | Library System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/button/all.min.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <h1>Debre Berhan University</h1>
+        </div>
+        <div class="nav-links">
+            <button onclick="document.getElementById('role-selection').scrollIntoView({behavior: 'smooth'})">Get
+                Started</button>
+        </div>
+    </header>
+
+    <div class="home-wrapper">
+        <div class="hero-section">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h2>Distributed Library Management System</h2>
+                <p>Empowering academic excellence through digital accessibility.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="role-selection" id="role-selection">
+            <div class="role-card" onclick="openLogin('student')">
+                <i class="fas fa-user-graduate"></i>
+                <h3>Student</h3>
+                <p>Access your borrowing history and search for academic resources.</p>
+                <button>Access Student Portal</button>
+            </div>
+            <div class="role-card" onclick="openLogin('employee')">
+                <i class="fas fa-user-tie"></i>
+                <h3>Employee</h3>
+                <p>Manage book circulation, generate reports, and assist members.</p>
+                <button>Access Staff Portal</button>
+            </div>
+            <div class="role-card" onclick="openLogin('admin')">
+                <i class="fas fa-user-shield"></i>
+                <h3>Administrator</h3>
+                <p>Complete system management, user control, and database maintenance.</p>
+                <button>Access Admin Console</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 Debre Berhan University Library System. All rights reserved.</p>
+            <p>Knowledge for Progress.</p>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-role-title">Login</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="login-form">
+                <input type="text" id="username" placeholder="Username" required />
+                <input type="password" id="password" placeholder="Password" required />
+                <input type="hidden" id="selected-role" />
+                <button type="submit">Login to Portal</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Clear any existing session
+        localStorage.clear();
+
+        function openLogin(role) {
+            document.getElementById('selected-role').value = role;
+            document.getElementById('modal-role-title').textContent = role.charAt(0).toUpperCase() + role.slice(1) + " Login";
+            document.getElementById('login-modal').style.display = "block";
+            document.getElementById('username').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('login-modal').style.display = "none";
+        }
+
+        window.onclick = function (event) {
+            if (event.target == document.getElementById('login-modal')) {
+                closeModal();
+            }
+        }
+
+        document.getElementById("login-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const selectedRole = document.getElementById("selected-role").value;
+
+            if (!username || !password) {
+                alert("Please enter both username and password");
+                return;
+            }
+
+            const body = "username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password);
+
+            try {
+                const res = await fetch(API_URL + "/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: body,
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    // Check if the role matches what they selected on the homepage
+                    if (data.role !== selectedRole && selectedRole !== 'any') {
+                        alert(`Access Denied: You are logged in as ${data.role}, but tried to enter the ${selectedRole} portal.`);
+                        return;
+                    }
+
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("role", data.role);
+
+                    if (data.memberId) {
+                        localStorage.setItem("memberId", data.memberId);
+                    }
+
+                    // Redirect based on backend role
+                    if (data.role === "admin") {
+                        window.location.href = "admin.html";
+                    } else if (data.role === "employee") {
+                        window.location.href = "employee.html";
+                    } else if (data.role === "student") {
+                        window.location.href = "student.html";
+                    } else {
+                        alert("Unknown role: " + data.role);
+                    }
+                } else {
+                    alert("Invalid credentials");
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server error: " + err.message);
+            }
+        });
+    </script>
+</body>
+
+</html>
