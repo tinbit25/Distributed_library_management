@@ -1,4 +1,9 @@
 const API_URL = "http://" + window.location.hostname + ":8081/api";
+// Open login modal when header button is clicked
+document.getElementById("login-btn-header").addEventListener("click", () => {
+    openLogin('any'); // 'any' allows all roles to log in
+});
+
 
 function checkAuth(requiredRole) {
     const token = localStorage.getItem("token");
@@ -8,6 +13,11 @@ function checkAuth(requiredRole) {
         window.location.href = "index.html";
         return;
     }
+
+
+    // Single button opens the login modal
+
+
 
     if (requiredRole && role !== requiredRole) {
         alert("Unauthorized access");
