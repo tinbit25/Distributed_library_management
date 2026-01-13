@@ -438,9 +438,9 @@ tr:hover {
 }
 
 footer {
-    margin-top: 60px;
-    padding: 40px 20px;
-    background: var(--text-color);
+    margin-top: 80px;
+    padding: 50px 20px;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
     color: var(--white);
     text-align: center;
 }
@@ -449,6 +449,37 @@ footer {
     max-width: 1200px;
     margin: 0 auto;
 }
+
+.footer-content p:first-child {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.footer-content p:last-child {
+    margin-top: 8px;
+    font-size: 0.95rem;
+    opacity: 0.85;
+}
+
+/* Optional footer icons */
+.footer-icons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.footer-icons i {
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform 0.3s, opacity 0.3s;
+}
+
+.footer-icons i:hover {
+    transform: translateY(-3px);
+    opacity: 0.8;
+}
+
 
 /* Modal for login */
 .modal {

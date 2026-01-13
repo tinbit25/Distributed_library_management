@@ -16,9 +16,10 @@ public class BorrowHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         if ("OPTIONS".equals(exchange.getRequestMethod())) {
-    HttpUtil.handleOptions(exchange);
-    return;
-}
+            HttpUtil.handleOptions(exchange);
+            return;
+        }
+
         String token = exchange.getRequestHeaders().getFirst("Authorization");
         if (!LoginHandler.isValidToken(token, null)) {
             HttpUtil.sendError(exchange, 401);
@@ -33,14 +34,21 @@ public class BorrowHandler implements HttpHandler {
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(
                     "SELECT br.book_id, br.member_id, br.borrow_date, br.due_date, br.return_date, br.fine, b.title " +
-                    "FROM borrow_records br JOIN books b ON br.book_id = b.id");
+                    "FROM borrow_records br JOIN books b ON br.book_id = b.id"
+                );
+
                 StringBuilder json = new StringBuilder("[");
                 while (rs.next()) {
-                    json.append(String.format("{\"bookId\":%d,\"memberId\":\"%s\",\"borrowDate\":\"%s\",\"dueDate\":\"%s\",\"returnDate\":%s,\"fine\":%.2f,\"title\":\"%s\"},",
-                            rs.getInt("book_id"), rs.getString("member_id"),
-                            rs.getDate("borrow_date"), rs.getDate("due_date"),
-                            rs.getObject("return_date") == null ? "null" : "\"" + rs.getDate("return_date") + "\"",
-                            rs.getDouble("fine"), rs.getString("title").replace("\"", "\\\"")));
+                    json.append(String.format(
+                        "{\"bookId\":%d,\"memberId\":\"%s\",\"borrowDate\":\"%s\",\"dueDate\":\"%s\",\"returnDate\":%s,\"fine\":%.2f,\"title\":\"%s\"},",
+                        rs.getInt("book_id"),
+                        rs.getString("member_id"),
+                        rs.getDate("borrow_date"),
+                        rs.getDate("due_date"),
+                        rs.getObject("return_date") == null ? "null" : "\"" + rs.getDate("return_date") + "\"",
+                        rs.getDouble("fine"),
+                        rs.getString("title").replace("\"", "\\\"")
+                    ));
                 }
                 if (json.length() > 1) json.deleteCharAt(json.length() - 1);
                 json.append("]");
@@ -48,7 +56,7 @@ public class BorrowHandler implements HttpHandler {
 
             } else if ("POST".equals(method)) {
                 Map<String, String> params = HttpUtil.parseParams(HttpUtil.readBody(exchange));
-                String memberId = params.get("memberId");
+                String memberId = params.get("memberId"); // must match members.id
                 int bookId = Integer.parseInt(params.get("bookId"));
                 LocalDate borrowDate = LocalDate.parse(params.get("borrowDate"));
 
@@ -61,11 +69,24 @@ public class BorrowHandler implements HttpHandler {
                 }
 
                 try {
-                    // Check if book is available
+                    // Check if member exists
+                    PreparedStatement psMember = conn.prepareStatement("SELECT id FROM members WHERE id = ?");
+                    psMember.setString(1, memberId);
+                    ResultSet rsMember = psMember.executeQuery();
+                    if (!rsMember.next()) {
+                        HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Member does not exist\"}");
+                        return;
+                    }
+
+                    // Check if book exists and is available
                     PreparedStatement psBook = conn.prepareStatement("SELECT available FROM books WHERE id = ?");
                     psBook.setInt(1, bookId);
                     ResultSet rsBook = psBook.executeQuery();
-                    if (!rsBook.next() || !rsBook.getBoolean("available")) {
+                    if (!rsBook.next()) {
+                        HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Book does not exist\"}");
+                        return;
+                    }
+                    if (!rsBook.getBoolean("available")) {
                         HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Book not available\"}");
                         return;
                     }
@@ -73,7 +94,8 @@ public class BorrowHandler implements HttpHandler {
                     // Insert borrow record
                     LocalDate dueDate = borrowDate.plusDays(BORROW_DAYS);
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date) VALUES (?, ?, ?, ?)");
+                        "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date) VALUES (?, ?, ?, ?)"
+                    );
                     ps.setInt(1, bookId);
                     ps.setString(2, memberId);
                     ps.setDate(3, Date.valueOf(borrowDate));
@@ -86,17 +108,21 @@ public class BorrowHandler implements HttpHandler {
                     psUpdate.executeUpdate();
 
                     // 2. Distributed Logging
-                    util.DistributedClient.log(exchange.getRemoteAddress().getAddress().getHostAddress(), 
-                                          "Book Borrowed - BookID: " + bookId + " by Member: " + memberId);
+                    util.DistributedClient.log(
+                        exchange.getRemoteAddress().getAddress().getHostAddress(),
+                        "Book Borrowed - BookID: " + bookId + " by Member: " + memberId
+                    );
 
                     exchange.sendResponseHeaders(200, -1);
                 } finally {
                     // 3. Release Lock
                     util.DistributedClient.releaseLock(resourceId);
                 }
+
             } else {
                 HttpUtil.sendError(exchange, 405);
             }
+
         } catch (Exception e) {
             e.printStackTrace();
             HttpUtil.sendError(exchange, 500);
