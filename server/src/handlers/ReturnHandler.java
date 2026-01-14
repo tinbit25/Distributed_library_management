@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import util.DatabaseUtil;
 import util.HttpUtil;
+import util.DistributedClient;
 
 import java.io.IOException;
 import java.sql.*;
@@ -71,6 +72,10 @@ public class ReturnHandler implements HttpHandler {
             PreparedStatement psBook = conn.prepareStatement("UPDATE books SET available = true WHERE id = ?");
             psBook.setInt(1, bookId);
             psBook.executeUpdate();
+
+            // Distributed Logging
+            DistributedClient.log(exchange.getRemoteAddress().getAddress().getHostAddress(), 
+                                  "Book Returned - BookID: " + bookId + " by Member: " + memberId);
 
             exchange.sendResponseHeaders(200, -1);
         } catch (Exception e) {

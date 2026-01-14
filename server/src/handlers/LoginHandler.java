@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import util.HttpUtil;
 import util.DatabaseUtil;
+import util.DistributedClient;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -87,6 +88,10 @@ public class LoginHandler implements HttpHandler {
 
                 String json =
                         "{ \"success\": true, \"role\": \"" + role + "\", \"token\": \"" + token + "\"" + memberIdJsonPart + " }";
+
+                // Distributed Logging
+                DistributedClient.log(exchange.getRemoteAddress().getAddress().getHostAddress(), 
+                                      "Login Success - User: " + username + " (Role: " + role + ")");
 
                 HttpUtil.sendResponse(exchange, 200, json);
             } else {

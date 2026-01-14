@@ -10,7 +10,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 
 public class StaticFileHandler implements HttpHandler {
-    private static final String CLIENT_DIR = "C:/Users/WIN10/Desktop/Distributed_library_management/client";
+    private static final String CLIENT_DIR = "C:\\E\\Y_3\\Distributedlibrarysystem\\Distributed_library_management\\client";
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {

@@ -52,31 +52,48 @@ public class BorrowHandler implements HttpHandler {
                 int bookId = Integer.parseInt(params.get("bookId"));
                 LocalDate borrowDate = LocalDate.parse(params.get("borrowDate"));
 
-                // Check if book is available
-                PreparedStatement psBook = conn.prepareStatement("SELECT available FROM books WHERE id = ?");
-                psBook.setInt(1, bookId);
-                ResultSet rsBook = psBook.executeQuery();
-                if (!rsBook.next() || !rsBook.getBoolean("available")) {
-                    HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Book not available\"}");
+                String resourceId = "book_" + bookId;
+
+                // 1. Distributed Mutual Exclusion: Try to acquire lock
+                if (!util.DistributedClient.acquireLock(resourceId)) {
+                    HttpUtil.sendResponse(exchange, 409, "{\"error\":\"Resource is busy. Please try again later.\"}");
                     return;
                 }
 
-                // Insert borrow record
-                LocalDate dueDate = borrowDate.plusDays(BORROW_DAYS);
-                PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date) VALUES (?, ?, ?, ?)");
-                ps.setInt(1, bookId);
-                ps.setString(2, memberId);
-                ps.setDate(3, Date.valueOf(borrowDate));
-                ps.setDate(4, Date.valueOf(dueDate));
-                ps.executeUpdate();
+                try {
+                    // Check if book is available
+                    PreparedStatement psBook = conn.prepareStatement("SELECT available FROM books WHERE id = ?");
+                    psBook.setInt(1, bookId);
+                    ResultSet rsBook = psBook.executeQuery();
+                    if (!rsBook.next() || !rsBook.getBoolean("available")) {
+                        HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Book not available\"}");
+                        return;
+                    }
 
-                // Update book availability
-                PreparedStatement psUpdate = conn.prepareStatement("UPDATE books SET available = false WHERE id = ?");
-                psUpdate.setInt(1, bookId);
-                psUpdate.executeUpdate();
+                    // Insert borrow record
+                    LocalDate dueDate = borrowDate.plusDays(BORROW_DAYS);
+                    PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO borrow_records (book_id, member_id, borrow_date, due_date) VALUES (?, ?, ?, ?)");
+                    ps.setInt(1, bookId);
+                    ps.setString(2, memberId);
+                    ps.setDate(3, Date.valueOf(borrowDate));
+                    ps.setDate(4, Date.valueOf(dueDate));
+                    ps.executeUpdate();
 
-                exchange.sendResponseHeaders(200, -1);
+                    // Update book availability
+                    PreparedStatement psUpdate = conn.prepareStatement("UPDATE books SET available = false WHERE id = ?");
+                    psUpdate.setInt(1, bookId);
+                    psUpdate.executeUpdate();
+
+                    // 2. Distributed Logging
+                    util.DistributedClient.log(exchange.getRemoteAddress().getAddress().getHostAddress(), 
+                                          "Book Borrowed - BookID: " + bookId + " by Member: " + memberId);
+
+                    exchange.sendResponseHeaders(200, -1);
+                } finally {
+                    // 3. Release Lock
+                    util.DistributedClient.releaseLock(resourceId);
+                }
             } else {
                 HttpUtil.sendError(exchange, 405);
             }
