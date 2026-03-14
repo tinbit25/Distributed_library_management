@@ -87,7 +87,7 @@ public class BorrowHandler implements HttpHandler {
                         return;
                     }
                     if (!rsBook.getBoolean("available")) {
-                        HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Book not available\"}");
+                        HttpUtil.sendResponse(exchange, 400, "{\"error\":\"Book is already borrowed by another user!\"}");
                         return;
                     }
 

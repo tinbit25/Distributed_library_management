@@ -11,46 +11,46 @@
 
 <body>
     <div class="body-wrapper">
-   <header class="fhome">
-    <div class="logo">
-        <h1>Debre Berhan University</h1>
-    </div>
-    <div class="nav-links">
-        <!-- Replace "Get Started" with Login -->
-        <button id="login-btn-header">Login to Portal</button>
-    </div>
-</header>
-
-
-    <div class="home-wrapper">
-        <div class="hero-section">
-            <div class="hero-overlay"></div>
-            <div class="hero-content">
-                <h2>Library Management System</h2>
-                <p>Empowering academic excellence through digital accessibility.</p>
+        <header class="fhome">
+            <div class="logo">
+                <h1>Debre Berhan University</h1>
             </div>
+            <div class="nav-links">
+                <!-- Replace "Get Started" with Login -->
+                <button id="login-btn-header">Login to Portal</button>
+            </div>
+        </header>
+
+
+        <div class="home-wrapper">
+            <div class="hero-section">
+                <div class="hero-overlay"></div>
+                <div class="hero-content">
+                    <h2>Library Management System</h2>
+                    <p>Empowering academic excellence through digital accessibility.</p>
+                </div>
+            </div>
+
+            <footer>
+                <div class="footer-content">
+                    <p>&copy; 2025 Debre Berhan University Library System</p>
+                    <p>Knowledge for Progress</p>
+
+                    <div class="footer-icons">
+                        <i class="fab fa-facebook-f"></i>
+                        <i class="fab fa-telegram-plane"></i>
+                        <i class="fab fa-github"></i>
+                    </div>
+                </div>
+            </footer>
         </div>
 
-         <footer>
-    <div class="footer-content">
-        <p>&copy; 2025 Debre Berhan University Library System</p>
-        <p>Knowledge for Progress</p>
-
-        <div class="footer-icons">
-            <i class="fab fa-facebook-f"></i>
-            <i class="fab fa-telegram-plane"></i>
-            <i class="fab fa-github"></i>
-        </div>
     </div>
-</footer>
-    </div>
-   
-</div>
-
-    
 
 
-  <!-- <footer>
+
+
+    <!-- <footer>
     <div class="footer-content">
         <p>&copy; 2025 Debre Berhan University Library System</p>
         <p>Knowledge for Progress</p>
@@ -86,7 +86,11 @@
 
         function openLogin(role) {
             document.getElementById('selected-role').value = role;
-            document.getElementById('modal-role-title').textContent = role.charAt(0).toUpperCase() + role.slice(1) + " Login";
+            if (role === 'any') {
+                document.getElementById('modal-role-title').textContent = "Login to Library Management System";
+            } else {
+                document.getElementById('modal-role-title').textContent = role.charAt(0).toUpperCase() + role.slice(1) + " Login";
+            }
             document.getElementById('login-modal').style.display = "block";
             document.getElementById('username').focus();
         }

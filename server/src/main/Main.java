@@ -12,6 +12,25 @@ public class Main {
         HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
 
         // -----------------------------
+        // Start Distributed Services
+        // -----------------------------
+        new Thread(() -> {
+            try {
+                distributed.AuditServer.main(new String[]{});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        new Thread(() -> {
+            try {
+                distributed.LockManager.main(new String[]{});
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        // -----------------------------
         // Serve static files from 'client' folder
         // -----------------------------
        server.createContext("/", new StaticFileHandler());

@@ -302,7 +302,21 @@
             formData.append("bookId", document.getElementById("borrow-book-id").value);
             formData.append("borrowDate", document.getElementById("borrow-date").value);
             const res = await fetch(`${API_URL}/borrow`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
-            if (res.ok) alert("Book Issued!"); else alert("Error issuing book");
+            if (res.ok) {
+                alert("Book Issued!");
+            } else {
+                const text = await res.text();
+                try {
+                    const json = JSON.parse(text);
+                    if (res.status === 409) {
+                        alert("⚠️ NOTIFICATION: " + json.error);
+                    } else {
+                        alert("❌ Error: " + (json.error || text));
+                    }
+                } catch (e) {
+                    alert("❌ Error: " + text);
+                }
+            }
         });
 
         document.getElementById("return-form").addEventListener("submit", async (e) => {

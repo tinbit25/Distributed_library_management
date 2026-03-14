@@ -123,8 +123,22 @@
             formData.append("borrowDate", document.getElementById("borrow-date").value);
             try {
                 const res = await fetch(`${API_URL}/borrow`, { method: "POST", body: formData, headers: { Authorization: localStorage.getItem("token") } });
-                if (res.ok) { alert("✅ Book issued successfully!"); document.getElementById("borrow-form").reset(); }
-                else { alert("❌ Error: " + await res.text()); }
+                if (res.ok) { 
+                    alert("✅ Book issued successfully!"); 
+                    document.getElementById("borrow-form").reset(); 
+                } else { 
+                    const text = await res.text();
+                    try {
+                        const json = JSON.parse(text);
+                        if (res.status === 409) {
+                             alert("⚠️ NOTIFICATION: " + json.error); // Specific notification for Resource Busy
+                        } else {
+                             alert("❌ Error: " + (json.error || text));
+                        }
+                    } catch (e) {
+                        alert("❌ Error: " + text);
+                    }
+                }
             } catch (err) { alert(err.message); }
         });
 
